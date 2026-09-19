@@ -36,6 +36,7 @@ For EACH flagged moment decide what it was:
 - block: a silent stuck moment mid-phrase
 - filler: um/uh/like inserted
 - false_alarm: the flag is explainable (transcription error, natural pause, reading style)
+A 'repetition' flag (or the transcript showing the same word twice in a row, or a cut-off fragment like 's-' or 'th-' before a word) means the reader repeated something. Classify it as word_repetition when a whole word recurs, or sound_repetition when only a sound/syllable or fragment recurs. Prefer this over prolongation whenever the same word or sound recurs.
 A 'stretched_word' flag only means the word's total duration is long. Use voiced_frac to decide what it actually was:
 - LOW voiced_frac (roughly < 0.5): most of the word's span is SILENCE, not voice. The transcriber attached a silent pause to this word -> classify as block, not prolongation.
 - HIGH voiced_frac (roughly > 0.8) AND much longer than expected: a genuinely held sound -> prolongation.

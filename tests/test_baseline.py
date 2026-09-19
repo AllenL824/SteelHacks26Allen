@@ -17,12 +17,11 @@ def test_rules_map_flags_to_events():
     assert events[0].start == 1.0
 
 
-def test_repeated_inserted_word_is_word_repetition():
-    the1, the2 = Word("the", 0.0, 0.2), Word("the", 0.3, 0.5)
-    aligned = [
-        AlignedWord("inserted", None, None, the1),
-        AlignedWord("matched", 0, "the", the2),
-    ]
-    events = classify([], aligned, [the1, the2])
+def test_repetition_flag_maps_to_word_repetition():
+    # repetition detection now lives in mismatch.find_flags; the baseline just maps
+    # the resulting flag to word_repetition (the judge distinguishes word vs sound).
+    words = [Word("the", 0.0, 0.2), Word("the", 0.3, 0.5)]
+    flags = [Flag("repetition", 0.0, 0.5, 0, "'the' repeated 2x")]
+    events = classify(flags, [], words)
     assert len(events) == 1
     assert events[0].type == "word_repetition"

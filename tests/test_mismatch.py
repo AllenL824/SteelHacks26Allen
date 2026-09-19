@@ -61,3 +61,40 @@ def test_clean_read_no_flags():
     words = [Word("the", 0.0, 0.2), Word("cat", 0.3, 0.55)]
     flags = find_flags(words, [(0.0, 0.55)], _aligned(words))
     assert flags == []
+
+
+def test_word_repetition_run_flagged_across_dashes():
+    # Whisper renders a stutter as: the - the - the cat  (dashes between repeats)
+    words = [
+        Word("the", 0.0, 0.3), Word("-", 0.3, 0.31),
+        Word("the", 0.4, 0.7), Word("-", 0.7, 0.71),
+        Word("the", 0.8, 1.1), Word("cat", 1.2, 1.5),
+    ]
+    flags = find_flags(words, [(0.0, 1.5)], _aligned(words))
+    reps = [f for f in flags if f.kind == "repetition"]
+    assert len(reps) == 1                     # one flag for the whole run, not per repeat
+    assert reps[0].start < 0.35               # anchored at the first "the"
+
+
+def test_repetition_suppresses_stretched_on_repeated_words():
+    # each repeated "the" is long enough to look stretched, but shouldn't be double-flagged
+    words = [
+        Word("the", 0.0, 0.6), Word("the", 0.7, 1.3), Word("cat", 1.4, 1.6),
+    ]
+    flags = find_flags(words, [(0.0, 1.6)], _aligned(words))
+    kinds = [f.kind for f in flags]
+    assert "repetition" in kinds
+    assert "stretched_word" not in kinds      # repeated words are not also called stretched
+
+
+def test_cutoff_fragment_flagged_as_repetition():
+    # Whisper marks a sound repetition with a dash fragment: "s-" then "sunlight"
+    words = [Word("s-", 0.0, 0.2), Word("sunlight", 0.3, 0.9)]
+    flags = find_flags(words, [(0.0, 0.9)], _aligned(words))
+    assert any(f.kind == "repetition" for f in flags)
+
+
+def test_no_repetition_on_distinct_words():
+    words = [Word("the", 0.0, 0.2), Word("cat", 0.3, 0.5), Word("sat", 0.6, 0.8)]
+    flags = find_flags(words, [(0.0, 0.8)], _aligned(words))
+    assert not any(f.kind == "repetition" for f in flags)
