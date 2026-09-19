@@ -5,3 +5,4 @@ cache/
 data/synthetic/*.wav
 data/synthetic/*.aiff
 *.aiff
+data/real/raw/

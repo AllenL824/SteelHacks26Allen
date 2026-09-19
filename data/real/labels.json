@@ -1,0 +1,30 @@
+[
+  {
+    "clip": "rainbow_clean.wav",
+    "passage": "rainbow",
+    "events": []
+  },
+  {
+    "clip": "northwind_clean.wav",
+    "passage": "north_wind",
+    "events": []
+  },
+  {
+    "clip": "rainbow_stutter.wav",
+    "passage": "rainbow",
+    "events": [
+      {"type": "block", "word_index": 3, "start": 3.92, "end": 6.42},
+      {"type": "block", "word_index": 14, "start": 10.66, "end": 12.60},
+      {"type": "block", "word_index": 27, "start": 16.08, "end": 17.70}
+    ]
+  },
+  {
+    "clip": "northwind_stutter.wav",
+    "passage": "north_wind",
+    "events": [
+      {"type": "word_repetition", "word_index": 0, "start": 2.56, "end": 4.72},
+      {"type": "prolongation", "word_index": 13, "start": 6.00, "end": 7.94},
+      {"type": "block", "word_index": 30, "start": 14.44, "end": 16.04}
+    ]
+  }
+]
