@@ -22,6 +22,7 @@ def _model() -> WhisperModel:
     return WhisperModel(config.WHISPER_MODEL, compute_type=config.WHISPER_COMPUTE)
 
 
+@lru_cache(maxsize=None)
 def transcribe(audio_path: str) -> list[Word]:
     segments, _ = _model().transcribe(
         audio_path,

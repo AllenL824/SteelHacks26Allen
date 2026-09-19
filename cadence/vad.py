@@ -35,6 +35,7 @@ def _read_audio(path: str, sampling_rate: int = SAMPLE_RATE) -> torch.Tensor:
     return wav.squeeze(0)
 
 
+@lru_cache(maxsize=None)
 def speech_regions(audio_path: str) -> list[tuple[float, float]]:
     wav = _read_audio(audio_path)  # resamples to 16k mono
     ts = get_speech_timestamps(wav, _model(), return_seconds=True)

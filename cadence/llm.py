@@ -65,7 +65,8 @@ def cached_chat(messages: list[dict], tag: str) -> str:
         temperature=config.LLM_TEMPERATURE,
     )
     content = resp.choices[0].message.content or ""
-    path.write_text(json.dumps({"content": content}))
+    if content:  # never cache an empty response (would poison the demo cache)
+        path.write_text(json.dumps({"content": content}))
     return content
 
 
