@@ -1,5 +1,6 @@
 faster-whisper
 silero-vad
+soundfile
 torch
 torchaudio
 openai
