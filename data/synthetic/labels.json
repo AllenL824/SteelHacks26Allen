@@ -1,0 +1,227 @@
+[
+  {
+    "clip": "north_wind_Samantha_0.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 37,
+        "start": 9.78,
+        "end": 10.062
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Samantha_1.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 32,
+        "start": 8.28,
+        "end": 8.546
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Daniel_0.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "block",
+        "word_index": 29,
+        "start": 7.68,
+        "end": 9.413
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Daniel_1.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "prolongation",
+        "word_index": 15,
+        "start": 3.88,
+        "end": 4.21
+      },
+      {
+        "type": "block",
+        "word_index": 26,
+        "start": 7.27,
+        "end": 9.047
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Karen_0.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "block",
+        "word_index": 16,
+        "start": 3.98,
+        "end": 5.2
+      },
+      {
+        "type": "sound_repetition",
+        "word_index": 18,
+        "start": 5.74,
+        "end": 6.029
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Karen_1.wav",
+    "passage": "north_wind",
+    "events": []
+  },
+  {
+    "clip": "north_wind_Moira_0.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "prolongation",
+        "word_index": 2,
+        "start": 0.34,
+        "end": 0.67
+      },
+      {
+        "type": "prolongation",
+        "word_index": 38,
+        "start": 11.09,
+        "end": 11.31
+      }
+    ]
+  },
+  {
+    "clip": "north_wind_Moira_1.wav",
+    "passage": "north_wind",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 5,
+        "start": 0.92,
+        "end": 1.362
+      },
+      {
+        "type": "block",
+        "word_index": 30,
+        "start": 8.922,
+        "end": 10.599
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Samantha_0.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "block",
+        "word_index": 4,
+        "start": 1.04,
+        "end": 2.927
+      },
+      {
+        "type": "block",
+        "word_index": 46,
+        "start": 14.687,
+        "end": 16.076
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Samantha_1.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 12,
+        "start": 3.2,
+        "end": 3.481
+      },
+      {
+        "type": "prolongation",
+        "word_index": 22,
+        "start": 6.221,
+        "end": 6.441
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Daniel_0.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 19,
+        "start": 5.26,
+        "end": 5.742
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Daniel_1.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "block",
+        "word_index": 7,
+        "start": 2.02,
+        "end": 3.844
+      },
+      {
+        "type": "sound_repetition",
+        "word_index": 24,
+        "start": 8.104,
+        "end": 8.528
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Karen_0.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 14,
+        "start": 3.64,
+        "end": 4.084
+      },
+      {
+        "type": "block",
+        "word_index": 37,
+        "start": 10.304,
+        "end": 11.556
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Karen_1.wav",
+    "passage": "rainbow",
+    "events": [
+      {
+        "type": "sound_repetition",
+        "word_index": 32,
+        "start": 8.92,
+        "end": 9.355
+      },
+      {
+        "type": "prolongation",
+        "word_index": 42,
+        "start": 11.855,
+        "end": 12.185
+      }
+    ]
+  },
+  {
+    "clip": "rainbow_Moira_0.wav",
+    "passage": "rainbow",
+    "events": []
+  },
+  {
+    "clip": "rainbow_Moira_1.wav",
+    "passage": "rainbow",
+    "events": []
+  }
+]
