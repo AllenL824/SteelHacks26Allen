@@ -1,0 +1,11 @@
+faster-whisper
+silero-vad
+torch
+torchaudio
+openai
+pydantic
+python-dotenv
+gradio
+pydub
+numpy
+pytest
