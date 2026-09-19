@@ -36,6 +36,10 @@ For EACH flagged moment decide what it was:
 - block: a silent stuck moment mid-phrase
 - filler: um/uh/like inserted
 - false_alarm: the flag is explainable (transcription error, natural pause, reading style)
+A 'stretched_word' flag only means the word's total duration is long. Use voiced_frac to decide what it actually was:
+- LOW voiced_frac (roughly < 0.5): most of the word's span is SILENCE, not voice. The transcriber attached a silent pause to this word -> classify as block, not prolongation.
+- HIGH voiced_frac (roughly > 0.8) AND much longer than expected: a genuinely held sound -> prolongation.
+- HIGH voiced_frac but only mildly longer than expected: a naturally long word read fluently -> false_alarm.
 For alignment mismatches (substituted/inserted/skipped) decide: transcription error -> false_alarm; speaker misread -> the fitting type.
 Never diagnose. Only classify moments using the evidence given.
 Reply with ONLY a JSON array, one object per flagged moment:

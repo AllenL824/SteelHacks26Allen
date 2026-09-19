@@ -24,7 +24,7 @@ def run_pipeline(audio_path: str, passage: str, use_llm: bool = True) -> dict:
     aligned = align_mod.align(words, passage)
     regions = speech_regions(audio_path)
     flags = mismatch.find_flags(words, regions, aligned)
-    enriched = build_enriched(words, aligned, flags, passage)
+    enriched = build_enriched(words, aligned, flags, passage, regions)
     if use_llm:
         events = llm.judge(enriched)
     else:
