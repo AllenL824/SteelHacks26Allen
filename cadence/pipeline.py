@@ -30,10 +30,11 @@ def run_pipeline(audio_path: str, passage: str, use_llm: bool = True) -> dict:
     else:
         events = baseline.classify(flags, aligned, words)
     metrics = compute_metrics(words, aligned, regions, flags)
+    practice = llm.plan(events, metrics) if use_llm else None
     return {
         "words": words, "aligned": aligned, "regions": regions,
         "flags": flags, "enriched": enriched, "events": events,
-        "metrics": metrics,
+        "metrics": metrics, "practice": practice,
     }
 
 

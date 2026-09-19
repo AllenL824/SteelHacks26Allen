@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import re
 from typing import Literal
 
 from dotenv import load_dotenv
@@ -102,3 +103,52 @@ def judge(enriched: str) -> list[Event]:
         tag="judge",
     )
     return [e for e in parse_events(raw) if e.type != "false_alarm"]
+
+
+Exercise = Literal["pacing_drill", "easy_onset", "pausing_practice", "repeat_passage"]
+
+
+class PracticePlan(BaseModel):
+    exercise: Exercise
+    feedback: str
+
+
+PLANNER_SYSTEM = """detailed thinking off
+You are a supportive reading-practice coach (NOT a clinician; never diagnose).
+Given measured metrics and classified moments from one read-aloud take, pick exactly
+ONE exercise: pacing_drill, easy_onset, pausing_practice, or repeat_passage.
+Write 2-3 encouraging sentences of feedback. Every number you mention MUST come
+from the metrics given — do not invent counts or rates.
+Reply with ONLY JSON: {"exercise": str, "feedback": str}"""
+
+
+def grounded(feedback: str, metrics: dict) -> bool:
+    """Reject feedback mentioning numbers not present in metrics."""
+    allowed: set[str] = set()
+    for v in metrics.values():
+        if isinstance(v, (int, float)):
+            allowed |= {str(v), str(int(v)), f"{float(v):.1f}", f"{float(v):.2f}"}
+    numbers = re.findall(r"\d+(?:\.\d+)?", feedback)
+    return all(n in allowed for n in numbers)
+
+
+def plan(events: list[Event], metrics: dict) -> PracticePlan:
+    payload = json.dumps({
+        "metrics": metrics,
+        "moments": [{"word": e.word, "type": e.type, "start": e.start} for e in events],
+    })
+    fallback = PracticePlan(exercise="repeat_passage",
+                            feedback="Nice work getting a take down. Read the passage once more at an easy pace.")
+    for attempt in ("plan", "plan_retry"):
+        raw = cached_chat(
+            [{"role": "system", "content": PLANNER_SYSTEM},
+             {"role": "user", "content": payload}],
+            tag=attempt,
+        )
+        try:
+            candidate = PracticePlan.model_validate_json(strip_fences(raw))
+        except ValidationError:
+            continue
+        if grounded(candidate.feedback, metrics):
+            return candidate
+    return fallback

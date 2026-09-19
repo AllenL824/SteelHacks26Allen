@@ -51,7 +51,9 @@ def analyze(audio_path: str | None, passage_id: str):
     m = result["metrics"]
     metrics_md = (f"**{m['wpm']} WPM** · {m['accuracy_pct']}% words matched · "
                   f"{m['long_pauses']} long pauses · {m['speech_seconds']}s speaking")
-    feedback = ""  # planner arrives in Task 7
+    practice = result.get("practice")
+    feedback = (f"### Try: {practice.exercise.replace('_', ' ')}\n{practice.feedback}"
+                if practice else "")
     return highlighted(result), events_rows, metrics_md, feedback
 
 
