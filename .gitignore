@@ -6,3 +6,5 @@ data/synthetic/*.wav
 data/synthetic/*.aiff
 *.aiff
 data/real/raw/
+.playwright-mcp/
+cadence_demo.png
