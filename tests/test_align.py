@@ -46,3 +46,14 @@ def test_punctuation_and_case_ignored():
     words = [w("Fox,", 0)]
     result = align(words, "fox")
     assert statuses(result) == ["matched"]
+
+
+def test_unequal_replace_block():
+    # 2 transcript words replace 1 passage word: pair off min(n), leftover is inserted
+    words = [w(t, i) for i, t in enumerate(["the", "very", "fast", "fox"])]
+    result = align(words, "The quick fox")
+    assert statuses(result) == ["matched", "substituted", "inserted", "matched"]
+    sub = result[1]
+    assert (sub.passage_index, sub.passage_word, sub.word.text) == (1, "quick", "very")
+    ins = result[2]
+    assert (ins.passage_index, ins.passage_word, ins.word.text) == (None, None, "fast")
