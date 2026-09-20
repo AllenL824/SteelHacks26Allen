@@ -12,10 +12,12 @@ EVENT_COLORS = {
 }
 
 DISCLAIMER = (
-    "Cadence is a practice companion, not a diagnostic or treatment tool. "
+    "SpeakR is a practice companion, not a diagnostic or treatment tool. "
     "It highlights moments in a recording to practice with — it does not assess "
     "or diagnose any condition."
 )
+
+CUSTOM_OPTION = "✏️ Create your own…"
 
 
 def passage_ids() -> list[str]:
@@ -50,14 +52,16 @@ def highlighted(result) -> list[tuple[str, str | None]]:
     return out
 
 
-def analyze(audio_path: str | None, passage_id: str):
+def analyze(audio_path: str | None, passage: str):
     """Returns (metrics_md, highlighted, events_rows, feedback_md) — order matches
-    the outputs list on the Analyze button."""
+    the outputs list on the Analyze button. `passage` is the raw text the reader
+    read (a preset or their own custom passage)."""
     if not audio_path:
         return "⚠️ Record or upload a reading first, or pick a sample below.", [], [], ""
+    if not (passage and passage.strip()):
+        return "⚠️ Enter or pick a passage first — the text you're reading.", [], [], ""
     try:
-        passage = load_passage(passage_id)
-        result = run_pipeline(audio_path, passage)
+        result = run_pipeline(audio_path, passage.strip())
     except Exception as e:  # keep the demo alive if the model/network hiccups
         msg = ("⚠️ Couldn't reach the analysis model. Check the connection and try again.\n\n"
                f"<sub>{type(e).__name__}: {e}</sub>")
@@ -94,21 +98,28 @@ def practice_plan_md(result) -> str:
     return "### Your practice plan\n\n" + "\n\n".join(parts) if parts else ""
 
 
-with gr.Blocks(title="Cadence") as demo:
-    gr.Markdown("# 🎙️ Cadence")
+with gr.Blocks(title="SpeakR") as demo:
+    gr.Markdown("# 🎙️ SpeakR")
     gr.Markdown("### Read-aloud practice companion")
     gr.Markdown(f"<sub>{DISCLAIMER}</sub>")
 
     with gr.Row(equal_height=True):
         with gr.Column(scale=1):
             gr.Markdown("**1. Choose a passage**")
-            passage_dd = gr.Dropdown(choices=passage_ids(), value=passage_ids()[0],
-                                     label="Passage", container=True)
-            passage_text = gr.Markdown(load_passage(passage_ids()[0]))
+            passage_dd = gr.Dropdown(
+                choices=passage_ids() + [CUSTOM_OPTION], value=passage_ids()[0],
+                label="Pick a preset, or “Create your own”", container=True,
+            )
+            passage_box = gr.Textbox(
+                value=load_passage(passage_ids()[0]),
+                label="Passage text",
+                placeholder="Type or paste the passage you're going to read…",
+                lines=4,
+            )
         with gr.Column(scale=1):
             gr.Markdown("**2. Record or upload your reading**")
             audio_in = gr.Audio(sources=["microphone", "upload"], type="filepath",
-                                label="Your reading")
+                                label="🎙️ Record, or ⬆️ upload an audio file")
 
     catalog = demo_catalog()
     if catalog:
@@ -118,16 +129,20 @@ with gr.Blocks(title="Cadence") as demo:
                 btn = gr.Button(label, size="sm")
                 btn.click(
                     lambda p=path, i=pid: (p, i, load_passage(i)),
-                    None, [audio_in, passage_dd, passage_text],
+                    None, [audio_in, passage_dd, passage_box],
                 )
 
-    passage_dd.change(lambda pid: load_passage(pid), passage_dd, passage_text)
+    def on_passage_choice(choice: str) -> str:
+        # "Create your own" clears the box so the user types their own; a preset fills it.
+        return "" if choice == CUSTOM_OPTION else load_passage(choice)
+
+    passage_dd.change(on_passage_choice, passage_dd, passage_box)
 
     run_btn = gr.Button("Analyze reading", variant="primary", size="lg")
 
     metrics_out = gr.Markdown()
     transcript_out = gr.HighlightedText(
-        label="Transcript (colored where Cadence flagged a moment)",
+        label="Transcript (colored where SpeakR flagged a moment)",
         color_map=EVENT_COLORS, show_legend=True,
     )
     events_out = gr.Dataframe(
@@ -136,7 +151,7 @@ with gr.Blocks(title="Cadence") as demo:
     )
     feedback_out = gr.Markdown()
 
-    run_btn.click(analyze, [audio_in, passage_dd],
+    run_btn.click(analyze, [audio_in, passage_box],
                   [metrics_out, transcript_out, events_out, feedback_out])
 
 if __name__ == "__main__":

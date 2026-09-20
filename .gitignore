@@ -8,3 +8,4 @@ data/synthetic/*.aiff
 data/real/raw/
 .playwright-mcp/
 cadence_demo.png
+speakr_custom_passage.png
