@@ -36,11 +36,13 @@ def demo_catalog() -> list[tuple[str, str, str]]:
 
     Only clips that exist on disk are offered, so the list degrades gracefully.
     """
+    real = config.DATA_DIR / "real"
     candidates = [
-        ("🙂 Clean — Rainbow", config.DATA_DIR / "real" / "rainbow_clean.wav", "rainbow"),
-        ("🗣️ Stutter — Rainbow", config.DATA_DIR / "real" / "rainbow_stutter.wav", "rainbow"),
-        ("🙂 Clean — North Wind", config.DATA_DIR / "real" / "northwind_clean.wav", "north_wind"),
-        ("🗣️ Stutter — North Wind", config.DATA_DIR / "real" / "northwind_stutter.wav", "north_wind"),
+        ("🙂 Clean — Rainbow", real / "rainbow_clean.wav", "rainbow"),
+        ("🗣️ Stutter — Rainbow", real / "rainbow_stutter.m4a", "rainbow"),
+        ("🙂 Clean — North Wind", real / "northwind_clean.wav", "north_wind"),
+        ("🗣️ Stutter — North Wind", real / "northwind_stutter.m4a", "north_wind"),
+        ("🗣️ Stutter — Pebble Path", real / "pebble.m4a", "pebble_path"),
     ]
     return [(label, str(path), pid) for label, path, pid in candidates if path.exists()]
 
@@ -70,17 +72,29 @@ def render_waveform(audio_path: str, result):
         import numpy as np
 
         from speakr.vad import _read_audio
-        wav = _read_audio(audio_path).numpy()
+        wav = _read_audio(audio_path).numpy().astype(np.float32)
         sr = 16000
-        t = np.arange(len(wav)) / sr
-        step = max(1, len(wav) // 4000)  # downsample for a light plot
+        dur = len(wav) / sr
 
-        fig, ax = plt.subplots(figsize=(11, 2.4))
-        ax.plot(t[::step], wav[::step], color="#b8c0cc", linewidth=0.6)
+        # Bold, normalized peak-envelope (Audacity/SoundCloud style): bin the signal,
+        # take the peak magnitude per bin, normalize to fill the vertical space, and
+        # draw mirrored bars. Makes quiet recordings and silent gaps read clearly.
+        n_bins = 700
+        edges = np.linspace(0, len(wav), n_bins + 1).astype(int)
+        peaks = np.array([
+            np.abs(wav[a:b]).max() if b > a else 0.0
+            for a, b in zip(edges[:-1], edges[1:])
+        ])
+        peaks = peaks / (peaks.max() + 1e-9)          # normalize -> tallest peak = 1.0
+        peaks = np.power(peaks, 0.7)                   # gentle boost so mid-level detail shows
+        centers = (edges[:-1] + edges[1:]) / 2 / sr
+
+        fig, ax = plt.subplots(figsize=(11, 2.6))
+        ax.vlines(centers, -peaks, peaks, color="#5b6472", linewidth=1.1)
         ax.set_yticks([])
-        ax.set_ylim(-1.05, 1.05)
+        ax.set_ylim(-1.1, 1.1)
+        ax.set_xlim(0, dur)
         ax.set_xlabel("time (seconds)", fontsize=8)
-        ax.margins(x=0)
 
         words = result.get("words", [])
         seen: set[str] = set()
