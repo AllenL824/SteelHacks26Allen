@@ -98,6 +98,21 @@ def practice_plan_md(result) -> str:
     return "### Your practice plan\n\n" + "\n\n".join(parts) if parts else ""
 
 
+# Pre-cached recordings, keyed by their dropdown label -> (wav path, passage id).
+PREVIOUS = {label: (path, pid) for label, path, pid in demo_catalog()}
+
+
+def analyze_previous(label: str):
+    """Load a cached recording + its passage and show its analysis (instant from cache).
+    Returns values for [audio_in, passage_dd, passage_box, metrics, transcript, events, feedback]."""
+    if not label or label not in PREVIOUS:
+        return gr.update(), gr.update(), gr.update(), "", [], [], ""
+    path, pid = PREVIOUS[label]
+    passage = load_passage(pid)
+    metrics_md, hl, rows, fb = analyze(path, passage)
+    return path, pid, passage, metrics_md, hl, rows, fb
+
+
 with gr.Blocks(title="SpeakR") as demo:
     gr.Markdown("# 🎙️ SpeakR")
     gr.Markdown("### Read-aloud practice companion")
@@ -121,16 +136,12 @@ with gr.Blocks(title="SpeakR") as demo:
             audio_in = gr.Audio(sources=["microphone", "upload"], type="filepath",
                                 label="🎙️ Record, or ⬆️ upload an audio file")
 
-    catalog = demo_catalog()
-    if catalog:
-        gr.Markdown("*…or try a sample (loads the clip and its passage):*")
-        with gr.Row():
-            for label, path, pid in catalog:
-                btn = gr.Button(label, size="sm")
-                btn.click(
-                    lambda p=path, i=pid: (p, i, load_passage(i)),
-                    None, [audio_in, passage_dd, passage_box],
-                )
+    prev_dd = None
+    if PREVIOUS:
+        prev_dd = gr.Dropdown(
+            choices=list(PREVIOUS.keys()), value=None,
+            label="▶ Analyze a previous recording (cached — loads instantly)",
+        )
 
     def on_passage_choice(choice: str) -> str:
         # "Create your own" clears the box so the user types their own; a preset fills it.
@@ -153,6 +164,13 @@ with gr.Blocks(title="SpeakR") as demo:
 
     run_btn.click(analyze, [audio_in, passage_box],
                   [metrics_out, transcript_out, events_out, feedback_out])
+
+    if prev_dd is not None:
+        prev_dd.change(
+            analyze_previous, prev_dd,
+            [audio_in, passage_dd, passage_box,
+             metrics_out, transcript_out, events_out, feedback_out],
+        )
 
 if __name__ == "__main__":
     demo.launch(theme=gr.themes.Soft(primary_hue="indigo"))
