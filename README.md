@@ -1,6 +1,8 @@
-# 🎙️ SpeakR
+1# 🎙️ SpeakR
 
-**A read-aloud fluency practice companion.** You read a passage aloud; SpeakR finds the moments where your speech and the text don't line up, uses **NVIDIA Nemotron** to decide what each moment actually was — a block, a prolongation, a repetition, a filler, or a false alarm — and hands back a grounded practice plan you can **hear coached in a real voice** and even **played back fluently in your own cloned voice**.
+> **SpeakR is a read-aloud speech-practice companion that measures where you stumble while reading a passage, uses NVIDIA Nemotron to classify each moment (block, prolongation, repetition, or filler) and generate grounded coaching, then speaks that feedback — and even reads the passage back fluently in your own ElevenLabs-cloned voice.**
+
+You read a passage aloud; SpeakR finds the moments where your speech and the text don't line up, uses **NVIDIA Nemotron** to decide what each moment actually was — a block, a prolongation, a repetition, a filler, or a false alarm — and hands back a grounded practice plan you can **hear coached in a real voice** and even **played back fluently in your own cloned voice**.
 
 > SpeakR is a **practice companion, not a diagnostic or treatment tool.** It highlights moments in a recording to practice with — it does not assess or diagnose any condition.
 
