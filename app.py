@@ -52,13 +52,8 @@ def highlighted(result) -> list[tuple[str, str | None]]:
     return out
 
 
-def analyze(audio_path: str | None, passage: str):
-    """Returns (metrics_md, highlighted, events_rows, feedback_md) — order matches
-    the outputs list on the Analyze button. `passage` is the raw text read."""
-    if not audio_path:
-        return "⚠️ Record or upload a reading first, or pick a previous one below.", [], [], ""
-    if not (passage and passage.strip()):
-        return "⚠️ Enter or pick a passage first — the text you're reading.", [], [], ""
+def _run_analysis(audio_path: str, passage: str):
+    """Run the pipeline and format the 4 outputs. Blocking (no progress)."""
     try:
         result = run_pipeline(audio_path, passage.strip())
     except Exception as e:  # keep the demo alive if the model/network hiccups
@@ -75,6 +70,24 @@ def analyze(audio_path: str | None, passage: str):
     events_rows = [[e.word, e.type, f"{e.confidence:.2f}", e.evidence]
                    for e in result["events"]]
     return metrics_md, highlighted(result), events_rows, practice_plan_md(result)
+
+
+def analyze(audio_path: str | None, passage: str):
+    """Streaming generator: shows a 'working' state immediately so a long analysis
+    never looks frozen, then yields the results. Outputs order matches the button."""
+    if not audio_path:
+        yield "⚠️ Record or upload a reading first, or pick a previous one below.", [], [], ""
+        return
+    if not (passage and passage.strip()):
+        yield "⚠️ Enter or pick a passage first — the text you're reading.", [], [], ""
+        return
+    yield (
+        "### ⏳ Analyzing your reading…\n"
+        "<sub>Transcribing, then Nemotron classifies each flagged moment and writes your "
+        "plan. A brand-new clip can take up to ~90 seconds; cached clips are instant.</sub>",
+        [], [], "",
+    )
+    yield _run_analysis(audio_path, passage)
 
 
 def practice_plan_md(result) -> str:
@@ -113,7 +126,7 @@ def analyze_previous(label: str):
         return gr.update(), gr.update(), gr.update(), "", [], [], ""
     path, pid = PREVIOUS[label]
     passage = load_passage(pid)
-    metrics_md, hl, rows, fb = analyze(path, passage)
+    metrics_md, hl, rows, fb = _run_analysis(path, passage)  # cached -> instant, no progress
     return path, pid, passage, metrics_md, hl, rows, fb
 
 
