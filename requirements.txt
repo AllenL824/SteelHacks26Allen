@@ -12,3 +12,4 @@ numpy
 pytest
 elevenlabs
 requests
+matplotlib
