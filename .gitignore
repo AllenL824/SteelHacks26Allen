@@ -14,3 +14,9 @@ speakr_layout.png
 speakr_waveform.png
 waveform_only.png
 waveform_dramatic.png
+.DS_Store
+**/.DS_Store
+*_inapp.png
+waveform_*.png
+speakr_*.png
+cadence_*.png
