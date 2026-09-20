@@ -1,5 +1,3 @@
-import re
-
 import gradio as gr
 
 from cadence import config
@@ -11,13 +9,6 @@ try:  # ElevenLabs is optional — a missing key just hides the voice UI
 except Exception:
     voice = None
     VOICE_OK = False
-
-
-def _plain(md: str) -> str:
-    """Strip light markdown so text reads naturally when spoken aloud."""
-    if not md:
-        return ""
-    return " ".join(re.sub(r"[#*_`>]", "", md).split())
 
 EVENT_COLORS = {
     "sound_repetition": "#e07b39",
@@ -69,13 +60,14 @@ def highlighted(result) -> list[tuple[str, str | None]]:
 
 
 def _run_analysis(audio_path: str, passage: str):
-    """Run the pipeline and format the 4 outputs. Blocking (no progress)."""
+    """Run the pipeline and format the outputs (metrics, transcript, events, plan,
+    spoken-coach script). Blocking (no progress)."""
     try:
         result = run_pipeline(audio_path, passage.strip())
     except Exception as e:  # keep the demo alive if the model/network hiccups
         msg = ("⚠️ Couldn't reach the analysis model. Check the connection and try again.\n\n"
                f"<sub>{type(e).__name__}: {e}</sub>")
-        return msg, [], [], ""
+        return msg, [], [], "", ""
 
     m = result["metrics"]
     metrics_md = (
@@ -85,23 +77,24 @@ def _run_analysis(audio_path: str, passage: str):
     )
     events_rows = [[e.word, e.type, f"{e.confidence:.2f}", e.evidence]
                    for e in result["events"]]
-    return metrics_md, highlighted(result), events_rows, practice_plan_md(result)
+    return (metrics_md, highlighted(result), events_rows,
+            practice_plan_md(result), coach_script(result))
 
 
 def analyze(audio_path: str | None, passage: str):
     """Streaming generator: shows a 'working' state immediately so a long analysis
     never looks frozen, then yields the results. Outputs order matches the button."""
     if not audio_path:
-        yield "⚠️ Record or upload a reading first, or pick a previous one below.", [], [], ""
+        yield "⚠️ Record or upload a reading first, or pick a previous one below.", [], [], "", ""
         return
     if not (passage and passage.strip()):
-        yield "⚠️ Enter or pick a passage first — the text you're reading.", [], [], ""
+        yield "⚠️ Enter or pick a passage first — the text you're reading.", [], [], "", ""
         return
     yield (
         "### ⏳ Analyzing your reading…\n"
         "<sub>Transcribing, then Nemotron classifies each flagged moment and writes your "
         "plan. A brand-new clip can take up to ~90 seconds; cached clips are instant.</sub>",
-        [], [], "",
+        [], [], "", "",
     )
     yield _run_analysis(audio_path, passage)
 
@@ -126,6 +119,27 @@ def practice_plan_md(result) -> str:
     return "### Your practice plan\n\n" + "\n\n".join(parts) if parts else ""
 
 
+def coach_script(result) -> str:
+    """A natural spoken coaching turn for ElevenLabs: numbers + the sound you caught
+    on + a drill to imitate + a breath. Only mentions numbers from the metrics."""
+    m = result["metrics"]
+    practice = result.get("practice")
+    rec = result.get("recommendation")
+    parts: list[str] = []
+    if practice is not None and practice.feedback:
+        parts.append(practice.feedback)  # Nemotron's grounded coaching sentences
+    else:
+        parts.append(f"You read at {m['wpm']} words per minute, "
+                     f"with {m['accuracy_pct']} percent of the words matching.")
+    if rec is not None and rec.problem_sound:
+        parts.append(f"One thing to focus on: your {rec.problem_sound} sounds.")
+    if rec is not None:
+        parts.append(f"Try this slowly, after me. {rec.tongue_twister}")
+        parts.append(rec.breathing)
+    parts.append("Take a breath, and give it another go.")
+    return " ".join(parts)
+
+
 # Pre-cached recordings, keyed by their dropdown label -> (wav path, passage id).
 PREVIOUS = {label: (path, pid) for label, path, pid in demo_catalog()}
 
@@ -139,11 +153,11 @@ def analyze_previous(label: str):
     """Load a cached recording + passage and show its analysis (instant from cache).
     Returns [audio_in, passage_dd, passage_box, metrics, transcript, events, feedback]."""
     if not label or label not in PREVIOUS:
-        return gr.update(), gr.update(), gr.update(), "", [], [], ""
+        return gr.update(), gr.update(), gr.update(), "", [], [], "", ""
     path, pid = PREVIOUS[label]
     passage = load_passage(pid)
-    metrics_md, hl, rows, fb = _run_analysis(path, passage)  # cached -> instant, no progress
-    return path, pid, passage, metrics_md, hl, rows, fb
+    metrics_md, hl, rows, fb, script = _run_analysis(path, passage)  # cached -> instant
+    return path, pid, passage, metrics_md, hl, rows, fb, script
 
 
 with gr.Blocks(title="SpeakR") as demo:
@@ -188,39 +202,42 @@ with gr.Blocks(title="SpeakR") as demo:
         label="Detected moments", wrap=True,
     )
     feedback_out = gr.Markdown()
+    coach_state = gr.State("")  # spoken-coach script from the latest analysis
 
     passage_dd.change(on_passage_choice, passage_dd, passage_box)
     run_btn.click(analyze, [audio_in, passage_box],
-                  [metrics_out, transcript_out, events_out, feedback_out])
+                  [metrics_out, transcript_out, events_out, feedback_out, coach_state])
     if prev_dd is not None:
         prev_dd.change(
             analyze_previous, prev_dd,
             [audio_in, passage_dd, passage_box,
-             metrics_out, transcript_out, events_out, feedback_out],
+             metrics_out, transcript_out, events_out, feedback_out, coach_state],
         )
 
     if VOICE_OK:
         gr.Markdown("### 🔊 Listen (ElevenLabs)")
         with gr.Row():
-            speak_btn = gr.Button("🔊 Hear feedback")
-            pace_btn = gr.Button("🔊 Hear the target pace")
+            coach_btn = gr.Button("🔊 Coach me", variant="primary")
             clone_btn = gr.Button("🎙️ Hear it in your own voice")
         voice_audio = gr.Audio(label="Playback", interactive=False, autoplay=True)
 
-        speak_btn.click(
-            lambda md: voice.speak_feedback(_plain(md)) if _plain(md) else None,
-            feedback_out, voice_audio,
-        )
-        pace_btn.click(
-            lambda p: voice.target_pace_audio(p.strip()) if p and p.strip() else None,
-            passage_box, voice_audio,
+        # Spoken debrief: Nemotron writes it, ElevenLabs speaks it (feedback +
+        # your problem sound + a drill to imitate).
+        coach_btn.click(
+            lambda script: voice.speak_feedback(script) if script else None,
+            coach_state, voice_audio,
         )
 
         def clone_and_read(audio_path, passage):
             if not audio_path or not (passage and passage.strip()):
+                gr.Warning("Add a recording and a passage first.")
                 return None
-            voice_id = voice.clone_voice([audio_path])
-            return voice.fluent_playback(passage.strip(), voice_id)
+            try:
+                voice_id = voice.clone_voice([audio_path])
+                return voice.fluent_playback(passage.strip(), voice_id)
+            except Exception as e:  # slot limit / API hiccup — don't crash the demo
+                gr.Warning(f"Voice clone unavailable right now ({type(e).__name__}).")
+                return None
 
         clone_btn.click(clone_and_read, [audio_in, passage_box], voice_audio)
 

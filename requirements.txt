@@ -11,3 +11,4 @@ pydub
 numpy
 pytest
 elevenlabs
+requests
