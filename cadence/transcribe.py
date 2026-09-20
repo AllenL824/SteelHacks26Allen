@@ -28,6 +28,7 @@ def transcribe(audio_path: str) -> list[Word]:
         audio_path,
         word_timestamps=True,
         initial_prompt=config.FILLER_PROMPT,
+        condition_on_previous_text=config.WHISPER_CONDITION_ON_PREVIOUS,
     )
     words: list[Word] = []
     for seg in segments:

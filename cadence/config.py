@@ -9,7 +9,13 @@ CACHE_DIR.mkdir(exist_ok=True)
 # ASR
 WHISPER_MODEL = "small"          # drop to "base" if transcription > ~15s per clip
 WHISPER_COMPUTE = "int8"
-FILLER_PROMPT = "Umm, so, uh, I- I was like, you know, well..."
+# Prime the transcriber to keep disfluencies (fillers, stutters) instead of
+# tidying them into fluent text — sound/word repetitions must survive to be detected.
+FILLER_PROMPT = ("Umm, so, uh, I- I was like, you know, well... "
+                 "b-b-ball, s-s-sun, the the the, wh-what, c-c-came, p-p-please.")
+# Off = don't let Whisper smooth each segment against the previous one; preserves
+# repeated sounds/words (e.g. "s-s-sun") that context-conditioning would normalize away.
+WHISPER_CONDITION_ON_PREVIOUS = False
 
 # Mismatch thresholds
 SECONDS_PER_SYLLABLE = 0.22      # expected duration per syllable
