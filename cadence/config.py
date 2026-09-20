@@ -30,5 +30,5 @@ MATCH_TOLERANCE = 0.3            # seconds; predicted event matches label if sam
 
 # LLM
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
-NEMOTRON_MODEL = "nvidia/nemotron-3-super-120b-a12b"  # llama-3.3-nemotron-super-49b-v1.5 reached EOL 2026-08-26; this is the current "Super" tier successor per https://integrate.api.nvidia.com/v1/models
+NEMOTRON_MODEL = "nvidia/nemotron-3-super-120b-a12b"  # keep: respects "detailed thinking off" -> clean JSON. Tried nemotron-3.5-lightning-30b-a3b for speed but it ignores the no-think toggle and dumps unbounded reasoning, breaking JSON parsing / timing out.
 LLM_TEMPERATURE = 0.2
