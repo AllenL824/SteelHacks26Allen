@@ -1,6 +1,6 @@
-from cadence import coaching_content
-from cadence.coaching import Recommendation, leading_sound, problem_sounds, recommend
-from cadence.llm import Event
+from speakr import coaching_content
+from speakr.coaching import Recommendation, leading_sound, problem_sounds, recommend
+from speakr.llm import Event
 
 
 def ev(word: str, typ: str) -> Event:

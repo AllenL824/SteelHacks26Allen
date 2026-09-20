@@ -1,10 +1,10 @@
 import gradio as gr
 
-from cadence import config
-from cadence.pipeline import load_passage, run_pipeline
+from speakr import config
+from speakr.pipeline import load_passage, run_pipeline
 
 try:  # ElevenLabs is optional — a missing key just hides the voice UI
-    from cadence import voice
+    from speakr import voice
     VOICE_OK = voice.available()
 except Exception:
     voice = None
@@ -69,7 +69,7 @@ def render_waveform(audio_path: str, result):
         import matplotlib.pyplot as plt
         import numpy as np
 
-        from cadence.vad import _read_audio
+        from speakr.vad import _read_audio
         wav = _read_audio(audio_path).numpy()
         sr = 16000
         t = np.arange(len(wav)) / sr

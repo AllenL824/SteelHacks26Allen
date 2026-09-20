@@ -4,9 +4,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from cadence import config, llm
-from cadence.llm import Event
-from cadence.pipeline import load_passage, run_pipeline
+from speakr import config, llm
+from speakr.llm import Event
+from speakr.pipeline import load_passage, run_pipeline
 
 
 def match_events(predicted: list[Event], labels: list[dict],
@@ -118,7 +118,7 @@ def render(results: dict, name: str) -> str:
 
 def main() -> None:
     quick = "--quick" in sys.argv
-    out = ["# Cadence evaluation results", ""]
+    out = ["# SpeakR evaluation results", ""]
     for name in ("synthetic", "real"):
         d = config.DATA_DIR / name
         if (d / "labels.json").exists():

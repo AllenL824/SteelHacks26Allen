@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from cadence import config
-from cadence.align import AlignedWord
-from cadence.transcribe import Word, normalize
+from speakr import config
+from speakr.align import AlignedWord
+from speakr.transcribe import Word, normalize
 
 VOWELS = "aeiouy"
 

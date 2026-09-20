@@ -1,8 +1,8 @@
 import sys
 
-from cadence.align import align
-from cadence.transcribe import transcribe
-from cadence import config
+from speakr.align import align
+from speakr.transcribe import transcribe
+from speakr import config
 
 audio = sys.argv[1]
 passage = (config.PASSAGES_DIR / "rainbow.txt").read_text().strip()

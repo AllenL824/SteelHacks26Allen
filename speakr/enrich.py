@@ -1,6 +1,6 @@
-from cadence.align import AlignedWord
-from cadence.mismatch import Flag, expected_duration
-from cadence.transcribe import Word
+from speakr.align import AlignedWord
+from speakr.mismatch import Flag, expected_duration
+from speakr.transcribe import Word
 
 
 def voiced_fraction(word: Word, regions: list[tuple[float, float]]) -> float:

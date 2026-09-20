@@ -1,5 +1,5 @@
-from cadence.align import align
-from cadence.transcribe import Word
+from speakr.align import align
+from speakr.transcribe import Word
 
 
 def w(text: str, i: int) -> Word:

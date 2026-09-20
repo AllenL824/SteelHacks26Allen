@@ -1,4 +1,4 @@
-from cadence.llm import parse_events, strip_fences
+from speakr.llm import parse_events, strip_fences
 
 
 def test_strip_fences():

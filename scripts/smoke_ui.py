@@ -12,7 +12,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from cadence import config  # noqa: E402
+from speakr import config  # noqa: E402
 
 
 def _fake_run_pipeline(audio_path: str, passage: str, use_llm: bool = True) -> dict:
@@ -39,10 +39,10 @@ def _fake_run_pipeline(audio_path: str, passage: str, use_llm: bool = True) -> d
     }
 
 
-fake = types.ModuleType("cadence.pipeline")
+fake = types.ModuleType("speakr.pipeline")
 fake.run_pipeline = _fake_run_pipeline
 fake.load_passage = lambda pid: (config.PASSAGES_DIR / f"{pid}.txt").read_text().strip()
-sys.modules["cadence.pipeline"] = fake
+sys.modules["speakr.pipeline"] = fake
 
 import app  # noqa: E402
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         import urllib.request
         _, url, _ = app.demo.launch(prevent_thread_lock=True, quiet=True, **app.LAUNCH_KWARGS)
         page = urllib.request.urlopen(url, timeout=10).read().decode()
-        assert "cadenceReader" in page, "reader script missing from page head"
+        assert "speakrReader" in page, "reader script missing from page head"
         assert "cr-cur" in page, "reader css missing from page"
         print("ok", url)
         app.demo.close()

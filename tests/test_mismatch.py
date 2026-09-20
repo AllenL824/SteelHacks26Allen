@@ -1,6 +1,6 @@
-from cadence.mismatch import expected_duration, find_flags, syllable_count
-from cadence.transcribe import Word
-from cadence.align import AlignedWord
+from speakr.mismatch import expected_duration, find_flags, syllable_count
+from speakr.transcribe import Word
+from speakr.align import AlignedWord
 
 
 def test_syllable_count():

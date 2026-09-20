@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
-from cadence import config
+from speakr import config
 
 load_dotenv()
 

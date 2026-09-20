@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from faster_whisper import WhisperModel
 
-from cadence import config
+from speakr import config
 
 
 @dataclass

@@ -34,8 +34,8 @@ audio → transcribe → align to passage → detect speech regions → find mis
 | Transcribe | faster-whisper (disfluency-preserving settings) | words + timestamps |
 | Align | difflib | matched / inserted / skipped / substituted |
 | Speech regions | Silero VAD | where there's voice vs. silence |
-| Mismatch flags | rules (`cadence/mismatch.py`) | stretched-word, mid-phrase-silence, unexplained-sound, repetition |
-| Enriched transcript | `cadence/enrich.py` | per-word timing, `voiced_frac`, alignment status, flags |
+| Mismatch flags | rules (`speakr/mismatch.py`) | stretched-word, mid-phrase-silence, unexplained-sound, repetition |
+| Enriched transcript | `speakr/enrich.py` | per-word timing, `voiced_frac`, alignment status, flags |
 | **Judge** | **Nemotron** | classifies each flagged moment into a disfluency type |
 | **Planner** | **Nemotron** | one exercise + grounded feedback |
 | Voice | ElevenLabs | spoken coach debrief + user's-own-voice playback |
@@ -44,7 +44,7 @@ audio → transcribe → align to passage → detect speech regions → find mis
 
 **The pipeline measures; Nemotron interprets and decides — it never computes the metrics.**
 
-- **Judge** (`cadence/llm.py`): reads the enriched transcript and classifies each flagged moment. This is where the intelligence lives — e.g. a "stretched" word that's mostly silence (`voiced_frac` low) is called a **block**, not a prolongation; a naturally-long but fully-voiced word is rejected as a **false alarm**; a repeated word/fragment becomes a **repetition**.
+- **Judge** (`speakr/llm.py`): reads the enriched transcript and classifies each flagged moment. This is where the intelligence lives — e.g. a "stretched" word that's mostly silence (`voiced_frac` low) is called a **block**, not a prolongation; a naturally-long but fully-voiced word is rejected as a **false alarm**; a repeated word/fragment becomes a **repetition**.
 - **Planner**: picks one practice exercise and writes 2–3 encouraging sentences, passed through a **grounding check** that rejects any feedback citing numbers not present in the measurements (retries once, then falls back).
 - Model: `nvidia/nemotron-3-super-120b-a12b` via NVIDIA's OpenAI-compatible API, with `detailed thinking off` for clean JSON. Every response is **cached to disk** so demos survive a dead network.
 
@@ -96,7 +96,7 @@ python -m pytest -q           # 43 tests
 ## Repo layout
 
 ```
-cadence/
+speakr/
   config.py         thresholds, model name, paths
   transcribe.py     faster-whisper wrapper (keeps disfluencies)
   align.py          difflib passage alignment

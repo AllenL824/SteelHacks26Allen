@@ -1,4 +1,4 @@
-from cadence.llm import grounded
+from speakr.llm import grounded
 
 
 def test_feedback_with_known_numbers_passes():

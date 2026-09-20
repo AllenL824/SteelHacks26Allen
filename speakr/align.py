@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
-from cadence.transcribe import Word, normalize
+from speakr.transcribe import Word, normalize
 
 
 @dataclass

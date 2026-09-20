@@ -1,4 +1,4 @@
-from cadence.llm import Event
+from speakr.llm import Event
 from eval.run_eval import match_events
 
 

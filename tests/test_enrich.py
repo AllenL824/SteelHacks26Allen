@@ -1,7 +1,7 @@
-from cadence.align import AlignedWord
-from cadence.enrich import build_enriched, voiced_fraction
-from cadence.mismatch import Flag
-from cadence.transcribe import Word
+from speakr.align import AlignedWord
+from speakr.enrich import build_enriched, voiced_fraction
+from speakr.mismatch import Flag
+from speakr.transcribe import Word
 
 
 def test_enriched_contains_timing_status_and_flags():

@@ -1,7 +1,7 @@
-from cadence.align import AlignedWord
-from cadence.baseline import classify
-from cadence.mismatch import Flag
-from cadence.transcribe import Word
+from speakr.align import AlignedWord
+from speakr.baseline import classify
+from speakr.mismatch import Flag
+from speakr.transcribe import Word
 
 
 def test_rules_map_flags_to_events():

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-from cadence import config
+from speakr import config
 
 load_dotenv()
 client = OpenAI(base_url=config.NVIDIA_BASE_URL, api_key=os.environ["NVIDIA_API_KEY"])

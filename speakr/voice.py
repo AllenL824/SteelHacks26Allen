@@ -1,5 +1,5 @@
 """ElevenLabs voice features. HARD RULE: only app.py may import this module —
-nothing in cadence/'s core pipeline may depend on ElevenLabs, so if it's missing
+nothing in speakr/'s core pipeline may depend on ElevenLabs, so if it's missing
 or a key isn't set, the rest of the app is unaffected.
 
 TTS audio is cached to disk (keyed by content hash) so the demo survives no Wi-Fi.
@@ -13,7 +13,7 @@ import os
 import requests
 from dotenv import load_dotenv
 
-from cadence import config
+from speakr import config
 
 load_dotenv()
 

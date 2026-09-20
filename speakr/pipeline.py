@@ -1,9 +1,9 @@
-from cadence import align as align_mod
-from cadence import baseline, coaching, llm, mismatch
-from cadence.enrich import build_enriched
-from cadence.transcribe import transcribe
-from cadence.vad import speech_regions
-from cadence import config
+from speakr import align as align_mod
+from speakr import baseline, coaching, llm, mismatch
+from speakr.enrich import build_enriched
+from speakr.transcribe import transcribe
+from speakr.vad import speech_regions
+from speakr import config
 
 
 def compute_metrics(words, aligned, regions, flags) -> dict:

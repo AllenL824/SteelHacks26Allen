@@ -6,9 +6,9 @@ the pipeline measures, and the content/narration layer interprets.
 """
 from dataclasses import dataclass
 
-from cadence import coaching_content
-from cadence.llm import Event
-from cadence.transcribe import normalize
+from speakr import coaching_content
+from speakr.llm import Event
+from speakr.transcribe import normalize
 
 # Disfluency types whose onset sound is meaningful (fillers/false alarms excluded).
 _DISFLUENCY = {"block", "prolongation", "sound_repetition", "word_repetition"}

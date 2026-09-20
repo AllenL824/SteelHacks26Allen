@@ -10,8 +10,8 @@ from pathlib import Path
 
 from pydub import AudioSegment
 
-from cadence import config
-from cadence.transcribe import Word, transcribe
+from speakr import config
+from speakr.transcribe import Word, transcribe
 
 OUT_DIR = config.DATA_DIR / "synthetic"
 VOICES = ["Samantha", "Daniel", "Karen", "Moira"]  # substitute if not installed

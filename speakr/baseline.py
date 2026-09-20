@@ -1,8 +1,8 @@
 """Rules-only classifier: the comparison point that shows what Nemotron adds."""
-from cadence.align import AlignedWord
-from cadence.llm import Event
-from cadence.mismatch import Flag
-from cadence.transcribe import Word
+from speakr.align import AlignedWord
+from speakr.llm import Event
+from speakr.mismatch import Flag
+from speakr.transcribe import Word
 
 FLAG_TO_TYPE = {
     "stretched_word": "prolongation",
