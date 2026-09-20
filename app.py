@@ -71,12 +71,27 @@ def analyze(audio_path: str | None, passage_id: str):
     )
     events_rows = [[e.word, e.type, f"{e.confidence:.2f}", e.evidence]
                    for e in result["events"]]
+    return metrics_md, highlighted(result), events_rows, practice_plan_md(result)
+
+
+def practice_plan_md(result) -> str:
+    """Compose the 'Your practice plan' card from the planner + coaching content."""
     practice = result.get("practice")
-    feedback = (
-        f"### Practice suggestion — {practice.exercise.replace('_', ' ')}\n{practice.feedback}"
-        if practice else ""
-    )
-    return metrics_md, highlighted(result), events_rows, feedback
+    rec = result.get("recommendation")
+    parts: list[str] = []
+    if rec is not None and rec.problem_sound:
+        moments = "moment" if rec.sound_count == 1 else "moments"
+        parts.append(f"**What tripped you up:** *{rec.problem_sound}*-sounds "
+                     f"({rec.sound_count} {moments})")
+    if practice is not None:
+        parts.append(f"**Try — {practice.exercise.replace('_', ' ')}:** {practice.feedback}")
+    if rec is not None:
+        parts.append(f"**Tongue twister:** {rec.tongue_twister}")
+        parts.append(f"**Breathing:** {rec.breathing}")
+        if rec.suggested_passage:
+            parts.append(f"**Next passage to try:** {rec.suggested_passage.replace('_', ' ')} "
+                         "(pick it from the passage list above)")
+    return "### Your practice plan\n\n" + "\n\n".join(parts) if parts else ""
 
 
 with gr.Blocks(title="Cadence") as demo:

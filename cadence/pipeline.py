@@ -1,5 +1,5 @@
 from cadence import align as align_mod
-from cadence import baseline, llm, mismatch
+from cadence import baseline, coaching, llm, mismatch
 from cadence.enrich import build_enriched
 from cadence.transcribe import transcribe
 from cadence.vad import speech_regions
@@ -31,10 +31,12 @@ def run_pipeline(audio_path: str, passage: str, use_llm: bool = True) -> dict:
         events = baseline.classify(flags, aligned, words)
     metrics = compute_metrics(words, aligned, regions, flags)
     practice = llm.plan(events, metrics) if use_llm else None
+    recommendation = coaching.recommend(events, metrics)
     return {
         "words": words, "aligned": aligned, "regions": regions,
         "flags": flags, "enriched": enriched, "events": events,
         "metrics": metrics, "practice": practice,
+        "recommendation": recommendation,
     }
 
 
