@@ -1,8 +1,8 @@
 from functools import lru_cache
 
-import soundfile as sf
+import numpy as np
 import torch
-import torchaudio
+from pydub import AudioSegment
 from silero_vad import get_speech_timestamps, load_silero_vad
 
 SAMPLE_RATE = 16000
@@ -16,23 +16,19 @@ def _model():
 def _read_audio(path: str, sampling_rate: int = SAMPLE_RATE) -> torch.Tensor:
     """Load audio as a mono float32 tensor at `sampling_rate`.
 
-    Deviation from the plan: silero_vad's own `read_audio` calls
-    `torchaudio.load`, which on the installed torchaudio 2.9.1 hard-requires
-    the `torchcodec` package for all I/O backends. The available torchcodec
-    build (0.16.0) has an ABI mismatch with this torch build (dlopen fails
-    with "Symbol not found: _torch_call_dispatcher"), so `read_audio` raises
-    a RuntimeError even after installing torchcodec. We load the file with
-    `soundfile` instead (no torchcodec dependency) and resample with
-    `torchaudio.transforms.Resample`, which is pure tensor math and doesn't
-    touch the broken I/O backend.
+    Uses pydub (ffmpeg-backed) so every format Whisper can read — wav, m4a/AAC,
+    mp3, … — decodes here too. Plain `soundfile` (libsndfile) can't open m4a,
+    which is what phones/QuickTime/Gradio-mic produce, so a recording or upload
+    would otherwise crash the VAD with "Format not recognised".
     """
-    data, sr = sf.read(path, dtype="float32", always_2d=True)
-    wav = torch.from_numpy(data.T)  # (channels, samples)
-    if wav.size(0) > 1:
-        wav = wav.mean(dim=0, keepdim=True)
-    if sr != sampling_rate:
-        wav = torchaudio.transforms.Resample(sr, sampling_rate)(wav)
-    return wav.squeeze(0)
+    seg = (
+        AudioSegment.from_file(path)
+        .set_channels(1)
+        .set_frame_rate(sampling_rate)
+        .set_sample_width(2)  # 16-bit
+    )
+    samples = np.frombuffer(seg.raw_data, dtype=np.int16).astype(np.float32) / 32768.0
+    return torch.from_numpy(samples)
 
 
 @lru_cache(maxsize=None)
