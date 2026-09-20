@@ -10,3 +10,4 @@ gradio
 pydub
 numpy
 pytest
+elevenlabs

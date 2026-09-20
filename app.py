@@ -1,7 +1,23 @@
+import re
+
 import gradio as gr
 
 from cadence import config
 from cadence.pipeline import load_passage, run_pipeline
+
+try:  # ElevenLabs is optional — a missing key just hides the voice UI
+    from cadence import voice
+    VOICE_OK = voice.available()
+except Exception:
+    voice = None
+    VOICE_OK = False
+
+
+def _plain(md: str) -> str:
+    """Strip light markdown so text reads naturally when spoken aloud."""
+    if not md:
+        return ""
+    return " ".join(re.sub(r"[#*_`>]", "", md).split())
 
 EVENT_COLORS = {
     "sound_repetition": "#e07b39",
@@ -182,6 +198,31 @@ with gr.Blocks(title="SpeakR") as demo:
             [audio_in, passage_dd, passage_box,
              metrics_out, transcript_out, events_out, feedback_out],
         )
+
+    if VOICE_OK:
+        gr.Markdown("### 🔊 Listen (ElevenLabs)")
+        with gr.Row():
+            speak_btn = gr.Button("🔊 Hear feedback")
+            pace_btn = gr.Button("🔊 Hear the target pace")
+            clone_btn = gr.Button("🎙️ Hear it in your own voice")
+        voice_audio = gr.Audio(label="Playback", interactive=False, autoplay=True)
+
+        speak_btn.click(
+            lambda md: voice.speak_feedback(_plain(md)) if _plain(md) else None,
+            feedback_out, voice_audio,
+        )
+        pace_btn.click(
+            lambda p: voice.target_pace_audio(p.strip()) if p and p.strip() else None,
+            passage_box, voice_audio,
+        )
+
+        def clone_and_read(audio_path, passage):
+            if not audio_path or not (passage and passage.strip()):
+                return None
+            voice_id = voice.clone_voice([audio_path])
+            return voice.fluent_playback(passage.strip(), voice_id)
+
+        clone_btn.click(clone_and_read, [audio_in, passage_box], voice_audio)
 
 if __name__ == "__main__":
     demo.launch(theme=gr.themes.Soft(primary_hue="indigo"))
