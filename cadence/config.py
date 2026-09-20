@@ -9,7 +9,13 @@ CACHE_DIR.mkdir(exist_ok=True)
 # ASR
 WHISPER_MODEL = "small"          # drop to "base" if transcription > ~15s per clip
 WHISPER_COMPUTE = "int8"
-FILLER_PROMPT = "Umm, so, uh, I- I was like, you know, well..."
+# Prime the transcriber to keep disfluencies (fillers, stutters) instead of
+# tidying them into fluent text — sound/word repetitions must survive to be detected.
+FILLER_PROMPT = ("Umm, so, uh, I- I was like, you know, well... "
+                 "b-b-ball, s-s-sun, the the the, wh-what, c-c-came, p-p-please.")
+# Off = don't let Whisper smooth each segment against the previous one; preserves
+# repeated sounds/words (e.g. "s-s-sun") that context-conditioning would normalize away.
+WHISPER_CONDITION_ON_PREVIOUS = False
 
 # Mismatch thresholds
 SECONDS_PER_SYLLABLE = 0.22      # expected duration per syllable
@@ -24,5 +30,5 @@ MATCH_TOLERANCE = 0.3            # seconds; predicted event matches label if sam
 
 # LLM
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
-NEMOTRON_MODEL = "nvidia/nemotron-3-super-120b-a12b"  # llama-3.3-nemotron-super-49b-v1.5 reached EOL 2026-08-26; this is the current "Super" tier successor per https://integrate.api.nvidia.com/v1/models
+NEMOTRON_MODEL = "nvidia/nemotron-3-super-120b-a12b"  # keep: respects "detailed thinking off" -> clean JSON. Tried nemotron-3.5-lightning-30b-a3b for speed but it ignores the no-think toggle and dumps unbounded reasoning, breaking JSON parsing / timing out.
 LLM_TEMPERATURE = 0.2

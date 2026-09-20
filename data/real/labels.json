@@ -23,7 +23,7 @@
     "passage": "north_wind",
     "events": [
       {"type": "word_repetition", "word_index": 0, "start": 2.56, "end": 4.72},
-      {"type": "prolongation", "word_index": 13, "start": 6.00, "end": 7.94},
+      {"type": "sound_repetition", "word_index": 13, "start": 6.00, "end": 7.94},
       {"type": "prolongation", "word_index": 23, "start": 11.48, "end": 11.96},
       {"type": "block", "word_index": 30, "start": 14.44, "end": 16.04},
       {"type": "prolongation", "word_index": 48, "start": 22.92, "end": 23.54},

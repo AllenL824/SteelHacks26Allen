@@ -16,10 +16,12 @@ EVENT_COLORS = {
 }
 
 DISCLAIMER = (
-    "Cadence is a practice companion, not a diagnostic or treatment tool. "
+    "SpeakR is a practice companion, not a diagnostic or treatment tool. "
     "It highlights moments in a recording to practice with — it does not assess "
     "or diagnose any condition."
 )
+
+CUSTOM_OPTION = "✏️ Create your own…"
 
 
 def passage_ids() -> list[str]:
@@ -27,9 +29,9 @@ def passage_ids() -> list[str]:
 
 
 def demo_catalog() -> list[tuple[str, str, str]]:
-    """Curated one-click samples: (button label, wav path, passage id).
+    """Curated cached recordings: (label, wav path, passage id).
 
-    Only clips that exist on disk are offered, so the row degrades gracefully.
+    Only clips that exist on disk are offered, so the list degrades gracefully.
     """
     candidates = [
         ("🙂 Clean — Rainbow", config.DATA_DIR / "real" / "rainbow_clean.wav", "rainbow"),
@@ -54,16 +56,18 @@ def highlighted(result) -> list[tuple[str, str | None]]:
     return out
 
 
-def analyze(audio_path: str | None, passage_id: str):
+def analyze(audio_path: str | None, passage: str):
     """Returns (metrics_md, reader_html, highlighted, events_rows, feedback_md) —
-    order matches the outputs list on the Analyze button. The reader is left
+    order matches the outputs list on the Analyze button. `passage` is the raw text
+    the reader read (a preset or their own custom passage). The reader HTML is left
     untouched (gr.update()) on errors so the passage stays readable."""
     if not audio_path:
-        return ("⚠️ Record or upload a reading first, or pick a sample below.",
+        return ("⚠️ Record or upload a reading first, or pick a previous one below.",
                 gr.update(), [], [], "")
+    if not (passage and passage.strip()):
+        return "⚠️ Enter or pick a passage first — the text you're reading.", gr.update(), [], [], ""
     try:
-        passage = load_passage(passage_id)
-        result = run_pipeline(audio_path, passage)
+        result = run_pipeline(audio_path, passage.strip())
     except Exception as e:  # keep the demo alive if the model/network hiccups
         msg = ("⚠️ Couldn't reach the analysis model. Check the connection and try again.\n\n"
                f"<sub>{type(e).__name__}: {e}</sub>")
@@ -77,7 +81,7 @@ def analyze(audio_path: str | None, passage_id: str):
     )
     events_rows = [[e.word, e.type, f"{e.confidence:.2f}", e.evidence]
                    for e in result["events"]]
-    reader_html = render_reader(passage, wrong_words(result["aligned"]), done=True)
+    reader_html = render_reader(passage.strip(), wrong_words(result["aligned"]), done=True)
     return metrics_md, reader_html, highlighted(result), events_rows, practice_plan_md(result)
 
 
@@ -110,6 +114,32 @@ READER_LEGEND = (
 )
 
 
+# Pre-cached recordings, keyed by their dropdown label -> (wav path, passage id).
+PREVIOUS = {label: (path, pid) for label, path, pid in demo_catalog()}
+
+
+def on_passage_choice(choice: str):
+    """Preset fills the box + reader; 'Create your own' clears the box to type into."""
+    text = "" if choice == CUSTOM_OPTION else load_passage(choice)
+    return text, render_reader(text)
+
+
+def sync_reader(passage: str):
+    """Re-render the guided reader whenever the passage text changes."""
+    return render_reader(passage or "")
+
+
+def analyze_previous(label: str):
+    """Load a cached recording + passage and show its analysis (instant from cache).
+    Returns [audio_in, passage_dd, passage_box, reader_out, metrics, transcript, events, feedback]."""
+    if not label or label not in PREVIOUS:
+        return (gr.update(), gr.update(), gr.update(), gr.update(), "", [], [], "")
+    path, pid = PREVIOUS[label]
+    passage = load_passage(pid)
+    metrics_md, reader_html, hl, rows, fb = analyze(path, passage)
+    return path, pid, passage, reader_html, metrics_md, hl, rows, fb
+
+
 # Gradio 6 moved css/head from Blocks() to launch(); support both.
 _GRADIO_6 = int(gr.__version__.split(".")[0]) >= 6
 PAGE_KWARGS = {"css": READER_CSS, "head": READER_JS}
@@ -117,17 +147,24 @@ LAUNCH_KWARGS = {"theme": gr.themes.Soft(primary_hue="indigo")}
 if _GRADIO_6:
     LAUNCH_KWARGS.update(PAGE_KWARGS)
 
-with gr.Blocks(title="Cadence", **({} if _GRADIO_6 else PAGE_KWARGS)) as demo:
-    gr.Markdown("# 🎙️ Cadence")
+with gr.Blocks(title="SpeakR", **({} if _GRADIO_6 else PAGE_KWARGS)) as demo:
+    gr.Markdown("# 🎙️ SpeakR")
     gr.Markdown("### Read-aloud practice companion")
     gr.Markdown(f"<sub>{DISCLAIMER}</sub>")
 
+    _default_passage = load_passage(passage_ids()[0])
     with gr.Row(equal_height=True):
         with gr.Column(scale=1):
             gr.Markdown("**1. Choose a passage**")
-            passage_dd = gr.Dropdown(choices=passage_ids(), value=passage_ids()[0],
-                                     label="Passage", container=True)
-            reader_out = gr.HTML(render_reader(load_passage(passage_ids()[0])))
+            passage_dd = gr.Dropdown(
+                choices=passage_ids() + [CUSTOM_OPTION], value=passage_ids()[0],
+                label="Pick a preset, or “Create your own”", container=True,
+            )
+            passage_box = gr.Textbox(
+                value=_default_passage, label="Passage text",
+                placeholder="Type or paste the passage you're going to read…", lines=3,
+            )
+            reader_out = gr.HTML(render_reader(_default_passage))
             gr.HTML(READER_LEGEND)
             with gr.Row():
                 pace = gr.Slider(MIN_WPM, MAX_WPM, value=DEFAULT_WPM, step=5,
@@ -138,21 +175,20 @@ with gr.Blocks(title="Cadence", **({} if _GRADIO_6 else PAGE_KWARGS)) as demo:
             gr.Markdown("**2. Record or upload your reading**")
             gr.Markdown("<sub>The guide starts on its own when you hit record.</sub>")
             audio_in = gr.Audio(sources=["microphone", "upload"], type="filepath",
-                                label="Your reading")
+                                label="🎙️ Record, or ⬆️ upload an audio file")
 
-    catalog = demo_catalog()
-    if catalog:
-        gr.Markdown("*…or try a sample (loads the clip and its passage):*")
-        with gr.Row():
-            for label, path, pid in catalog:
-                btn = gr.Button(label, size="sm")
-                btn.click(
-                    lambda p=path, i=pid: (p, i, render_reader(load_passage(i))),
-                    None, [audio_in, passage_dd, reader_out],
-                ).then(None, None, None, js=JS_RESET)
+    prev_dd = None
+    if PREVIOUS:
+        prev_dd = gr.Dropdown(
+            choices=list(PREVIOUS.keys()), value=None,
+            label="▶ Analyze a previous recording (cached — loads instantly)",
+        )
 
-    passage_dd.change(lambda pid: render_reader(load_passage(pid)), passage_dd, reader_out
+    # Passage text drives the reader. Preset/custom selection updates both;
+    # typing a custom passage re-renders the reader too.
+    passage_dd.change(on_passage_choice, passage_dd, [passage_box, reader_out]
                       ).then(None, None, None, js=JS_RESET)
+    passage_box.change(sync_reader, passage_box, reader_out).then(None, None, None, js=JS_RESET)
 
     # Reading guide: runs in the browser only, no round-trip to the server.
     audio_in.start_recording(None, [pace], None, js=JS_START)
@@ -165,7 +201,7 @@ with gr.Blocks(title="Cadence", **({} if _GRADIO_6 else PAGE_KWARGS)) as demo:
 
     metrics_out = gr.Markdown()
     transcript_out = gr.HighlightedText(
-        label="Transcript (colored where Cadence flagged a moment)",
+        label="Transcript (colored where SpeakR flagged a moment)",
         color_map=EVENT_COLORS, show_legend=True,
     )
     events_out = gr.Dataframe(
@@ -176,9 +212,16 @@ with gr.Blocks(title="Cadence", **({} if _GRADIO_6 else PAGE_KWARGS)) as demo:
 
     # Stop the guide first so it doesn't paint over the red results.
     run_btn.click(None, None, None, js=JS_STOP).then(
-        analyze, [audio_in, passage_dd],
+        analyze, [audio_in, passage_box],
         [metrics_out, reader_out, transcript_out, events_out, feedback_out],
     )
+
+    if prev_dd is not None:
+        prev_dd.change(
+            analyze_previous, prev_dd,
+            [audio_in, passage_dd, passage_box, reader_out,
+             metrics_out, transcript_out, events_out, feedback_out],
+        ).then(None, None, None, js=JS_STOP)
 
 if __name__ == "__main__":
     demo.launch(**LAUNCH_KWARGS)
